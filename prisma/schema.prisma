@@ -1,0 +1,364 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// Tenancy & auth
+// ─────────────────────────────────────────────────────────────
+
+enum TenantPlan {
+  starter
+  pro
+  enterprise
+}
+
+enum UserRole {
+  admin
+  scout
+  analyst
+  viewer
+}
+
+model Tenant {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  name      String
+  plan      TenantPlan @default(starter)
+  createdAt DateTime   @default(now())
+
+  users               User[]
+  dataUploads         DataUploadSession[]
+  columnMappings      ColumnMapping[]
+  watchlistEntries    WatchlistEntry[]
+  reports             Report[]
+  videoClips          VideoClip[]
+  injuries            Injury[]
+  skinfoldMeasurements SkinfoldMeasurement[]
+  playerSalaries      PlayerSalary[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email          String   @unique
+  hashedPassword String
+  fullName       String
+  role           UserRole @default(scout)
+  createdAt      DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────
+// Catálogo compartido (liga/equipo/jugador/stats)
+// ─────────────────────────────────────────────────────────────
+
+enum PositionGroup {
+  GK
+  DEF
+  MID
+  FWD
+}
+
+enum StyleCluster {
+  possession
+  direct
+  high_press
+  low_block
+  unclassified
+}
+
+model League {
+  id            String  @id @default(cuid())
+  name          String
+  country       String
+  tier          Int     @default(1)
+  confederation String?
+
+  teams Team[]
+
+  @@unique([name, country])
+}
+
+model Team {
+  id                String       @id @default(cuid())
+  name              String
+  leagueId          String
+  league            League       @relation(fields: [leagueId], references: [id])
+  season            String
+  styleCluster      StyleCluster @default(unclassified)
+  styleFeaturesJson Json?
+
+  players      Player[]
+  homeMatches  Match[]      @relation("HomeTeam")
+  awayMatches  Match[]      @relation("AwayTeam")
+
+  @@unique([name, leagueId, season])
+}
+
+model Player {
+  id            String        @id @default(cuid())
+  name          String
+  nationality   String?
+  positionGroup PositionGroup
+  foot          String?
+  heightCm      Int?
+  currentTeamId String?
+  currentTeam   Team?         @relation(fields: [currentTeamId], references: [id])
+  createdAt     DateTime      @default(now())
+
+  seasonStats          PlayerSeasonStats[]
+  marketData           MarketData[]
+  events               PlayerEvent[]
+  watchlistEntries     WatchlistEntry[]
+  videoClips           VideoClip[]
+  injuries             Injury[]
+  skinfoldMeasurements SkinfoldMeasurement[]
+  salaries             PlayerSalary[]
+
+  @@index([name])
+}
+
+model PlayerSeasonStats {
+  id              String   @id @default(cuid())
+  playerId        String
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  season          String
+  minutesPlayed   Int
+  statsJson       Json
+  percentilesJson Json?
+  updatedAt       DateTime @updatedAt
+
+  @@unique([playerId, season])
+}
+
+model MarketData {
+  id              String    @id @default(cuid())
+  playerId        String
+  player          Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  marketValueEur  Decimal?  @db.Decimal(14, 2)
+  contractExpiry  DateTime?
+  agency          String?
+  source          String
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([playerId, source])
+}
+
+model Match {
+  id         String   @id @default(cuid())
+  homeTeamId String
+  homeTeam   Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId String
+  awayTeam   Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  season     String
+  homeScore  Int?
+  awayScore  Int?
+  playedAt   DateTime?
+
+  events PlayerEvent[]
+}
+
+model PlayerEvent {
+  id        String   @id @default(cuid())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  eventType String
+  x         Float?
+  y         Float?
+  endX      Float?
+  endY      Float?
+  xg        Float?
+  xt        Float?
+  extraJson Json?
+
+  @@index([playerId, eventType])
+  @@index([matchId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Datos por tenant: ingesta SICS/GPS, watchlist, reportes
+// ─────────────────────────────────────────────────────────────
+
+enum UploadKind {
+  physical
+  match_events
+  player_report
+}
+
+model DataUploadSession {
+  id             String     @id @default(cuid())
+  tenantId       String
+  tenant         Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  kind           UploadKind
+  playerRef      String
+  sessionDate    DateTime
+  sourceFilename String?
+  deviceOrTool   String?
+  rowsJson       Json
+  createdAt      DateTime   @default(now())
+}
+
+model ColumnMapping {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sourceColumn String
+  standardName String
+  updatedAt    DateTime @updatedAt
+
+  @@unique([tenantId, sourceColumn])
+}
+
+model WatchlistEntry {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, playerId])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title       String
+  kind        String
+  blobUrl     String?
+  paramsJson  Json?
+  createdAt   DateTime @default(now())
+}
+
+// Análisis de video: los clips se referencian por URL (YouTube o link
+// directo a un mp4) en vez de subir el archivo — un partido completo pesa
+// varios GB, muy por encima de lo que soportan las funciones serverless de
+// Vercel o el storage gratuito de Supabase. Así también se evita duplicar
+// contenido que el club ya tiene en YouTube/Drive.
+model VideoClip {
+  id            String            @id @default(cuid())
+  tenantId      String
+  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title         String
+  sourceUrl     String
+  // Recorte (in/out) sobre el mismo link — nulo significa "video completo".
+  // No se re-procesa ni re-codifica el archivo, solo se reproduce ese tramo.
+  startSeconds  Int?
+  endSeconds    Int?
+  playerId      String?
+  player        Player?           @relation(fields: [playerId], references: [id])
+  aiAnalysis    String?
+  aiAnalyzedAt  DateTime?
+  createdAt     DateTime          @default(now())
+  annotations   VideoAnnotation[]
+}
+
+model VideoAnnotation {
+  id              String    @id @default(cuid())
+  clipId          String
+  clip            VideoClip @relation(fields: [clipId], references: [id], onDelete: Cascade)
+  timestampSeconds Int
+  note            String
+  createdAt       DateTime  @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────
+// Departamento médico y nutrición: lesiones + control de pliegues
+// ─────────────────────────────────────────────────────────────
+
+enum InjurySeverity {
+  mild
+  moderate
+  severe
+}
+
+enum InjuryStatus {
+  active
+  recovering
+  recovered
+}
+
+model Injury {
+  id               String         @id @default(cuid())
+  tenantId         String
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  playerId         String
+  player           Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  diagnosis        String
+  bodyPart         String
+  severity         InjurySeverity @default(moderate)
+  status           InjuryStatus   @default(active)
+  occurredAt       DateTime
+  expectedReturnAt DateTime?
+  actualReturnAt   DateTime?
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([tenantId, playerId])
+}
+
+// Control antropométrico de pliegues cutáneos (protocolo de 6 sitios:
+// tríceps, subescapular, suprailíaco, abdominal, muslo, pantorrilla),
+// usado en fútbol para seguir composición corporal a lo largo de la
+// temporada. El % de grasa es una estimación (fórmula de Yuhasz para
+// deportistas), no un valor de laboratorio — se muestra siempre como tal.
+model SkinfoldMeasurement {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  playerId       String
+  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  measuredAt     DateTime
+  weightKg       Float?
+  heightCm       Float?
+  tricepsMm      Float?
+  subscapularMm  Float?
+  suprailiacMm   Float?
+  abdominalMm    Float?
+  thighMm        Float?
+  calfMm         Float?
+  sumMm          Float
+  bodyFatPercent Float?
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  @@index([tenantId, playerId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Financiero: costo salarial por jugador vs. minutos jugados
+// ─────────────────────────────────────────────────────────────
+
+// El costo total de temporada se deriva como monthlySalary * 12 (se asume
+// contrato full-time todo el año salvo que se indique lo contrario en
+// notas) — el costo por minuto se calcula en el momento contra los
+// PlayerSeasonStats.minutesPlayed de la misma temporada, no se persiste.
+model PlayerSalary {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  playerId      String
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  season        String
+  monthlySalary Decimal  @db.Decimal(14, 2)
+  currency      String   @default("USD")
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, playerId, season])
+  @@index([tenantId, season])
+}

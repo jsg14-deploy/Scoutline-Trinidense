@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap');
+@import "tailwindcss";
+
+/* Paleta Club Sportivo Trinidense: tema oscuro, navy profundo de fondo,
+   dorado como acento (estilo tech, inspirado en LDP pero con la identidad
+   de Trinidense en vez del verde/negro genérico). */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-bg: #090c1f;
+  --color-surface: #0f1330;
+  --color-card: #141a3d;
+  --color-border: #232a54;
+  --color-border-2: #343d72;
+
+  --color-navy: #1c2a5e;
+  --color-navy-2: #2c3d7e;
+  --color-navy-deep: #04060f;
+
+  --color-accent: #f2c230;
+  --color-accent-2: #f7d35c;
+
+  --color-positive: #34d399;
+  --color-negative: #f87171;
+  --color-warn: #fbbf24;
+
+  --color-text: #eef1fb;
+  --color-muted: #8f9bc7;
+  --color-muted-2: #626f9e;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Textura sutil de grano para romper el plano de fondo en secciones grandes. */
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  .glass-panel {
+    background: rgba(20, 26, 61, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(35, 42, 84, 0.6);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-border-2);
+  }
+}
