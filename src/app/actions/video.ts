@@ -14,6 +14,7 @@ export async function createVideoClip(_state: VideoFormState, formData: FormData
   const title = String(formData.get("title") ?? "").trim();
   const sourceUrl = String(formData.get("source_url") ?? "").trim();
   const playerId = String(formData.get("player_id") ?? "").trim() || null;
+  const isPublic = formData.get("is_public") === "true";
 
   if (!title || !sourceUrl) {
     return { error: "Faltan datos: título y link del video son obligatorios." };
@@ -22,7 +23,14 @@ export async function createVideoClip(_state: VideoFormState, formData: FormData
   let clipId: string;
   try {
     const clip = await prisma.videoClip.create({
-      data: { tenantId: session.tenantId, title, sourceUrl, playerId },
+      data: {
+        tenantId: session.tenantId,
+        title,
+        sourceUrl,
+        playerId,
+        isPublic,
+        createdById: session.userId,
+      },
     });
     clipId = clip.id;
   } catch {

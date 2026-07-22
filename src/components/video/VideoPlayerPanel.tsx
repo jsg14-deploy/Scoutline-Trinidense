@@ -48,7 +48,14 @@ export function VideoPlayerPanel({
  }) {
   const router = useRouter();
   const [playbackStart, setPlaybackStart] = useState(startSeconds ?? 0);
-  const source = parseVideoUrl(sourceUrl, { startSeconds: playbackStart, endSeconds });
+  
+  const isLocal = sourceUrl.startsWith("local://");
+  const localFilename = isLocal ? sourceUrl.replace("local://", "") : "";
+  const [localFileUrl, setLocalFileUrl] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const videoSrc = isLocal ? (localFileUrl ?? "") : sourceUrl;
+  const source = parseVideoUrl(videoSrc, { startSeconds: playbackStart, endSeconds });
   const videoRef = useRef<HTMLVideoElement>(null);
   
   // Referencia tipada para el reproductor de Remotion
@@ -128,13 +135,65 @@ export function VideoPlayerPanel({
     });
   }
 
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragOver(true);
+  }
+
+  function handleDragLeave() {
+    setIsDragOver(false);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const match = files.find(f => f.name === localFilename);
+    if (match) {
+      setLocalFileUrl(URL.createObjectURL(match));
+    } else {
+      alert(`No se encontró el archivo "${localFilename}" entre los archivos soltados.`);
+    }
+  }
+
   const sortedAnnotations = [...annotations].sort((a, b) => a.timestampSeconds - b.timestampSeconds);
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <div className="grid gap-3">
-        <div className="aspect-video overflow-hidden rounded-2xl border border-border bg-black">
-          {source.kind === "youtube" ? (
+        <div 
+          onDragOver={isLocal ? handleDragOver : undefined}
+          onDragLeave={isLocal ? handleDragLeave : undefined}
+          onDrop={isLocal ? handleDrop : undefined}
+          className={`aspect-video overflow-hidden rounded-2xl border bg-black transition-colors ${
+            isDragOver ? "border-accent bg-accent/5" : "border-border"
+          }`}
+        >
+          {isLocal && !localFileUrl ? (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center text-white">
+              <Play size={40} className="text-accent mb-3 opacity-80" />
+              <p className="font-semibold text-sm">Este es un video local: "{localFilename}"</p>
+              <p className="text-xs text-muted mt-1 max-w-sm mb-4">
+                Para reproducirlo, arrastrá el archivo táctico de video acá o haz clic abajo.
+              </p>
+              <input
+                type="file"
+                id="local-file-picker"
+                accept="video/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setLocalFileUrl(URL.createObjectURL(file));
+                  }
+                }}
+              />
+              <label htmlFor="local-file-picker" className="cursor-pointer rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-navy-deep hover:opacity-90">
+                Seleccionar Archivo Local
+              </label>
+            </div>
+          ) : source.kind === "youtube" ? (
             <iframe
               key={source.embedUrl}
               src={source.embedUrl}
@@ -148,7 +207,7 @@ export function VideoPlayerPanel({
               ref={playerRef}
               component={require("./RemotionTacticalVideo").RemotionTacticalVideo}
               inputProps={{
-                sourceUrl: sourceUrl,
+                sourceUrl: videoSrc,
                 startSeconds: startSeconds ?? 0,
                 endSeconds: endSeconds ?? null,
                 annotations: annotations,

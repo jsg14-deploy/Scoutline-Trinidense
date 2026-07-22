@@ -14,6 +14,7 @@ export type CreateInjuryInput = {
   occurredAt: string;
   expectedReturnAt?: string;
   notes?: string;
+  isPublic?: boolean;
 };
 
 export async function createInjury(input: CreateInjuryInput) {
@@ -28,6 +29,8 @@ export async function createInjury(input: CreateInjuryInput) {
       occurredAt: new Date(input.occurredAt),
       expectedReturnAt: input.expectedReturnAt ? new Date(input.expectedReturnAt) : null,
       notes: input.notes || null,
+      isPublic: input.isPublic ?? true,
+      createdById: session.userId,
     },
   });
   revalidatePath(`/medico/${input.playerId}`);
@@ -57,6 +60,7 @@ export type CreateSkinfoldInput = SkinfoldSites & {
   weightKg?: number;
   heightCm?: number;
   notes?: string;
+  isPublic?: boolean;
 };
 
 export async function createSkinfoldMeasurement(input: CreateSkinfoldInput) {
@@ -86,6 +90,8 @@ export async function createSkinfoldMeasurement(input: CreateSkinfoldInput) {
       sumMm,
       bodyFatPercent,
       notes: input.notes || null,
+      isPublic: input.isPublic ?? true,
+      createdById: session.userId,
     },
   });
   revalidatePath(`/medico/${input.playerId}`);

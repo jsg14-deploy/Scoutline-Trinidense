@@ -42,8 +42,13 @@ const STANDARD_VARS = {
   medical: MEDICAL_STANDARD_VARS,
 };
 
-export function DataUploader() {
-  const [kind, setKind] = useState<Kind>("player_report");
+interface DataUploaderProps {
+  allowedKinds?: Kind[];
+  defaultKind?: Kind;
+}
+
+export function DataUploader({ allowedKinds, defaultKind }: DataUploaderProps = {}) {
+  const [kind, setKind] = useState<Kind>(defaultKind ?? "player_report");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [mapping, setMapping] = useState<Record<string, string>>({});
@@ -99,24 +104,36 @@ export function DataUploader() {
   return (
     <div className="grid gap-6">
       <div className="flex flex-wrap gap-2">
-        <KindButton active={kind === "player_report"} onClick={() => resetKind(setKind, setFile, setPreview, "player_report")}>
-          Reporte de jugadores (SICS)
-        </KindButton>
-        <KindButton active={kind === "match_events"} onClick={() => resetKind(setKind, setFile, setPreview, "match_events")}>
-          Eventos de partido (SICS)
-        </KindButton>
-        <KindButton active={kind === "physical"} onClick={() => resetKind(setKind, setFile, setPreview, "physical")}>
-          Datos físicos (GPS)
-        </KindButton>
-        <KindButton active={kind === "nutrition"} onClick={() => resetKind(setKind, setFile, setPreview, "nutrition")}>
-          Nutrición (Pliegues)
-        </KindButton>
-        <KindButton active={kind === "medical"} onClick={() => resetKind(setKind, setFile, setPreview, "medical")}>
-          Médico / Lesiones
-        </KindButton>
-        <KindButton active={kind === "salary"} onClick={() => resetKind(setKind, setFile, setPreview, "salary")}>
-          Financiero (Sueldos)
-        </KindButton>
+        {(!allowedKinds || allowedKinds.includes("player_report")) && (
+          <KindButton active={kind === "player_report"} onClick={() => resetKind(setKind, setFile, setPreview, "player_report")}>
+            Reporte de jugadores (SICS)
+          </KindButton>
+        )}
+        {(!allowedKinds || allowedKinds.includes("match_events")) && (
+          <KindButton active={kind === "match_events"} onClick={() => resetKind(setKind, setFile, setPreview, "match_events")}>
+            Eventos de partido (SICS)
+          </KindButton>
+        )}
+        {(!allowedKinds || allowedKinds.includes("physical")) && (
+          <KindButton active={kind === "physical"} onClick={() => resetKind(setKind, setFile, setPreview, "physical")}>
+            Datos físicos (GPS)
+          </KindButton>
+        )}
+        {(!allowedKinds || allowedKinds.includes("nutrition")) && (
+          <KindButton active={kind === "nutrition"} onClick={() => resetKind(setKind, setFile, setPreview, "nutrition")}>
+            Nutrición (Pliegues)
+          </KindButton>
+        )}
+        {(!allowedKinds || allowedKinds.includes("medical")) && (
+          <KindButton active={kind === "medical"} onClick={() => resetKind(setKind, setFile, setPreview, "medical")}>
+            Médico / Lesiones
+          </KindButton>
+        )}
+        {(!allowedKinds || allowedKinds.includes("salary")) && (
+          <KindButton active={kind === "salary"} onClick={() => resetKind(setKind, setFile, setPreview, "salary")}>
+            Financiero (Sueldos)
+          </KindButton>
+        )}
       </div>
 
       {state?.success && <p className="text-sm text-positive">{state.summary}</p>}

@@ -34,15 +34,18 @@ model Tenant {
   plan      TenantPlan @default(starter)
   createdAt DateTime   @default(now())
 
-  users               User[]
-  dataUploads         DataUploadSession[]
-  columnMappings      ColumnMapping[]
-  watchlistEntries    WatchlistEntry[]
-  reports             Report[]
-  videoClips          VideoClip[]
-  injuries            Injury[]
+  users                User[]
+  dataUploads          DataUploadSession[]
+  columnMappings       ColumnMapping[]
+  watchlistEntries     WatchlistEntry[]
+  reports              Report[]
+  videoClips           VideoClip[]
+  injuries             Injury[]
   skinfoldMeasurements SkinfoldMeasurement[]
-  playerSalaries      PlayerSalary[]
+  playerSalaries       PlayerSalary[]
+  opponentAnalyses     OpponentAnalysis[]
+  fines                Fine[]
+  logistics            Logistics[]
 }
 
 model User {
@@ -122,6 +125,7 @@ model Player {
   injuries             Injury[]
   skinfoldMeasurements SkinfoldMeasurement[]
   salaries             PlayerSalary[]
+  fines                Fine[]
 
   @@index([name])
 }
@@ -239,6 +243,9 @@ model Report {
   kind        String
   blobUrl     String?
   paramsJson  Json?
+  pdfBase64   String?
+  isPublic    Boolean  @default(true)
+  createdById String?
   createdAt   DateTime @default(now())
 }
 
@@ -261,6 +268,8 @@ model VideoClip {
   player        Player?           @relation(fields: [playerId], references: [id])
   aiAnalysis    String?
   aiAnalyzedAt  DateTime?
+  isPublic      Boolean           @default(true)
+  createdById   String?
   createdAt     DateTime          @default(now())
   annotations   VideoAnnotation[]
 }
@@ -304,6 +313,8 @@ model Injury {
   expectedReturnAt DateTime?
   actualReturnAt   DateTime?
   notes            String?
+  isPublic         Boolean        @default(true)
+  createdById      String?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
@@ -333,6 +344,8 @@ model SkinfoldMeasurement {
   sumMm          Float
   bodyFatPercent Float?
   notes          String?
+  isPublic       Boolean  @default(true)
+  createdById    String?
   createdAt      DateTime @default(now())
 
   @@index([tenantId, playerId])
@@ -356,9 +369,56 @@ model PlayerSalary {
   monthlySalary Decimal  @db.Decimal(14, 2)
   currency      String   @default("USD")
   notes         String?
+  isPublic      Boolean  @default(true)
+  createdById   String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   @@unique([tenantId, playerId, season])
   @@index([tenantId, season])
+}
+
+model OpponentAnalysis {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rivalName     String
+  startingXI    String
+  squad         String
+  substitutions String
+  minutesPlayed String
+  aiAnalysis    String?
+  videoUrl      String?
+  isPublic      Boolean  @default(true)
+  createdById   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Fine {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  playerId    String
+  player      Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  amount      Decimal  @db.Decimal(14, 2)
+  reason      String
+  date        DateTime @default(now())
+  status      String   @default("pending") // pending | paid | deducted
+  isPublic    Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+}
+
+model Logistics {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  hotelCost   Decimal  @db.Decimal(14, 2)
+  busCost     Decimal  @db.Decimal(14, 2)
+  date        DateTime @default(now())
+  notes       String?
+  isPublic    Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
 }

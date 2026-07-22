@@ -3,6 +3,8 @@ import { HeartPulse } from "lucide-react";
 import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { MedicalManager } from "@/components/medical/MedicalManager";
+import { DataUploader } from "@/components/data/DataUploader";
 
 export default async function MedicoPage() {
   const session = await requireSession();
@@ -15,11 +17,18 @@ export default async function MedicoPage() {
       positionGroup: true,
       currentTeam: { select: { name: true } },
       injuries: {
-        where: { tenantId: session.tenantId, status: { not: "recovered" } },
+        where: {
+          tenantId: session.tenantId,
+          status: { not: "recovered" },
+          OR: [{ isPublic: true }, { createdById: session.userId }],
+        },
         select: { id: true },
       },
       skinfoldMeasurements: {
-        where: { tenantId: session.tenantId },
+        where: {
+          tenantId: session.tenantId,
+          OR: [{ isPublic: true }, { createdById: session.userId }],
+        },
         orderBy: { measuredAt: "desc" },
         take: 1,
         select: { measuredAt: true, bodyFatPercent: true },
@@ -36,6 +45,18 @@ export default async function MedicoPage() {
         title="Médico y Nutrición"
         subtitle="Seguimiento de lesiones y control antropométrico (pliegues) por jugador."
       />
+
+      {/* Carga Directa (Manual) */}
+      <div className="grid gap-3">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-[#f2c230] border-b border-border pb-1">Cargar Diagnósticos o Mediciones manualmente</h2>
+        <MedicalManager players={players} />
+      </div>
+
+      {/* Carga por Planilla Excel/CSV */}
+      <div className="grid gap-3">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-[#f2c230] border-b border-border pb-1">Importar Planilla Médica (CSV o Excel)</h2>
+        <DataUploader allowedKinds={["medical", "nutrition"]} defaultKind="medical" />
+      </div>
 
       {players.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-2 bg-card p-16 text-center">

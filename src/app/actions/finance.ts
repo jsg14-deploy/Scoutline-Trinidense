@@ -108,7 +108,7 @@ export async function askFinanceAssistant(question: string): Promise<{ reply: st
   const session = await requireSession();
 
   try {
-    const rows = await loadSalaryRows(session.tenantId);
+    const rows = await loadSalaryRows(session.tenantId, session.userId);
     if (rows.length === 0) {
       return { error: "Todavía no hay salarios cargados — subí una planilla o agregá un jugador puntual primero." };
     }
@@ -136,4 +136,102 @@ export async function askFinanceAssistant(question: string): Promise<{ reply: st
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Error desconocido al consultar la IA." };
   }
+}
+
+export type FineState = { error?: string; success?: boolean } | undefined;
+
+export async function createFine(_state: FineState, formData: FormData): Promise<FineState> {
+  const session = await requireSession();
+
+  const playerId = String(formData.get("playerId") ?? "");
+  const amount = Number(formData.get("amount") ?? 0);
+  const reason = String(formData.get("reason") ?? "").trim();
+  const dateStr = String(formData.get("date") ?? "");
+  const isPublic = formData.get("is_public") === "true";
+
+  if (!playerId || amount <= 0 || !reason) {
+    return { error: "Datos de multa inválidos." };
+  }
+
+  try {
+    await prisma.fine.create({
+      data: {
+        tenantId: session.tenantId,
+        playerId,
+        amount,
+        reason,
+        date: dateStr ? new Date(dateStr) : new Date(),
+        status: "pending",
+        isPublic,
+        createdById: session.userId,
+      },
+    });
+
+    revalidatePath("/financiero");
+    return { success: true };
+  } catch (err) {
+    return { error: "Error al registrar la multa." };
+  }
+}
+
+export async function toggleFineStatus(fineId: string, currentStatus: string) {
+  const session = await requireSession();
+  
+  let newStatus = "pending";
+  if (currentStatus === "pending") newStatus = "paid";
+  else if (currentStatus === "paid") newStatus = "deducted";
+
+  await prisma.fine.updateMany({
+    where: { id: fineId, tenantId: session.tenantId },
+    data: { status: newStatus },
+  });
+
+  revalidatePath("/financiero");
+}
+
+export async function deleteFine(fineId: string) {
+  const session = await requireSession();
+  await prisma.fine.deleteMany({
+    where: { id: fineId, tenantId: session.tenantId },
+  });
+  revalidatePath("/financiero");
+}
+
+export type LogisticsState = { error?: string; success?: boolean } | undefined;
+
+export async function createLogistics(_state: LogisticsState, formData: FormData): Promise<LogisticsState> {
+  const session = await requireSession();
+
+  const hotelCost = Number(formData.get("hotelCost") ?? 0);
+  const busCost = Number(formData.get("busCost") ?? 0);
+  const dateStr = String(formData.get("date") ?? "");
+  const notes = String(formData.get("notes") ?? "").trim() || null;
+  const isPublic = formData.get("is_public") === "true";
+
+  try {
+    await prisma.logistics.create({
+      data: {
+        tenantId: session.tenantId,
+        hotelCost,
+        busCost,
+        date: dateStr ? new Date(dateStr) : new Date(),
+        notes,
+        isPublic,
+        createdById: session.userId,
+      },
+    });
+
+    revalidatePath("/financiero");
+    return { success: true };
+  } catch (err) {
+    return { error: "Error al registrar logística." };
+  }
+}
+
+export async function deleteLogistics(id: string) {
+  const session = await requireSession();
+  await prisma.logistics.deleteMany({
+    where: { id, tenantId: session.tenantId },
+  });
+  revalidatePath("/financiero");
 }

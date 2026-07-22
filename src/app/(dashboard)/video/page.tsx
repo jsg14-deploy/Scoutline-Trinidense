@@ -11,7 +11,13 @@ export default async function VideoPage() {
 
   const [clips, players] = await Promise.all([
     prisma.videoClip.findMany({
-      where: { tenantId: session.tenantId },
+      where: {
+        tenantId: session.tenantId,
+        OR: [
+          { isPublic: true },
+          { createdById: session.userId },
+        ],
+      },
       include: { player: true, _count: { select: { annotations: true } } },
       orderBy: { createdAt: "desc" },
     }),

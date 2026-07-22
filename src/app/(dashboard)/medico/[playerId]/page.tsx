@@ -22,11 +22,19 @@ export default async function MedicoPlayerPage({ params }: { params: Params }) {
 
   const [injuries, measurements] = await Promise.all([
     prisma.injury.findMany({
-      where: { tenantId: session.tenantId, playerId },
+      where: {
+        tenantId: session.tenantId,
+        playerId,
+        OR: [{ isPublic: true }, { createdById: session.userId }],
+      },
       orderBy: { occurredAt: "desc" },
     }),
     prisma.skinfoldMeasurement.findMany({
-      where: { tenantId: session.tenantId, playerId },
+      where: {
+        tenantId: session.tenantId,
+        playerId,
+        OR: [{ isPublic: true }, { createdById: session.userId }],
+      },
       orderBy: { measuredAt: "asc" },
     }),
   ]);

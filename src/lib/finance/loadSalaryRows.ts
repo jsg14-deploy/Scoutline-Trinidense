@@ -15,9 +15,15 @@ export type SalaryRow = {
   costPerMinute: number | null;
 };
 
-export async function loadSalaryRows(tenantId: string): Promise<SalaryRow[]> {
+export async function loadSalaryRows(tenantId: string, userId?: string): Promise<SalaryRow[]> {
   const salaries = await prisma.playerSalary.findMany({
-    where: { tenantId },
+    where: {
+      tenantId,
+      OR: [
+        { isPublic: true },
+        userId ? { createdById: userId } : {},
+      ],
+    },
     orderBy: { createdAt: "desc" },
     include: { player: { include: { currentTeam: true } } },
   });
