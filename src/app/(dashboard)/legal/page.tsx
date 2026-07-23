@@ -114,7 +114,7 @@ export default async function LegalPage() {
                           </span>
                         </td>
                         <td className="p-4 text-right">
-                          <form action={deleteLegalContract.bind(null, c.id)}>
+                          <form action={async () => { await deleteLegalContract(c.id); }}>
                             <button className="text-muted hover:text-negative transition-colors">Eliminar</button>
                           </form>
                         </td>

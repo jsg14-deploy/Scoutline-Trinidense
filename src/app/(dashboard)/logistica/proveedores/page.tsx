@@ -44,7 +44,7 @@ export default async function ProveedoresPage() {
                   <td className="p-4 text-muted">{p.contactInfo || "—"}</td>
                   <td className="p-4 text-muted truncate max-w-[200px]">{p.notes || "—"}</td>
                   <td className="p-4 text-right">
-                    <form action={deleteLogisticsProvider.bind(null, p.id)}>
+                    <form action={async () => { await deleteLogisticsProvider(p.id); }}>
                       <button className="text-muted hover:text-negative transition-colors" title="Eliminar proveedor">
                         <Trash2 size={16} />
                       </button>

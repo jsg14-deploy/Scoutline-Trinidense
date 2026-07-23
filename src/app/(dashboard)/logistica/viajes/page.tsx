@@ -55,7 +55,7 @@ export default async function ViajesPage() {
                   </td>
                   <td className="p-4 text-muted">{t._count.expenses} reg.</td>
                   <td className="p-4 text-right">
-                    <form action={deleteLogisticsTrip.bind(null, t.id)}>
+                    <form action={async () => { await deleteLogisticsTrip(t.id); }}>
                       <button className="text-muted hover:text-negative transition-colors" title="Eliminar viaje">
                         <Trash2 size={16} />
                       </button>

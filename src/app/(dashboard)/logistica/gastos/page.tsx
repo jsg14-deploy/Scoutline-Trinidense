@@ -68,7 +68,7 @@ export default async function GastosPage() {
                     </span>
                   </td>
                   <td className="p-4 text-right">
-                    <form action={deleteLogisticsExpense.bind(null, e.id)}>
+                    <form action={async () => { await deleteLogisticsExpense(e.id); }}>
                       <button className="text-muted hover:text-negative transition-colors" title="Eliminar gasto">
                         <Trash2 size={16} />
                       </button>
