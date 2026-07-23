@@ -17,7 +17,7 @@ export function AiLegalAnalyzer() {
         if (result.error) {
           setError(result.error);
         } else {
-          setAnalysis(result.analysis);
+          setAnalysis(result.analysis ?? null);
         }
       } catch {
         setError("Ocurrió un error inesperado al contactar con Gemini.");

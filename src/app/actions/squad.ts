@@ -173,9 +173,41 @@ export async function restoreSquadPlayer(id: string): Promise<ActionState> {
       data: { deletedAt: null },
     });
     revalidatePath("/plantel");
+    revalidatePath("/data");
     return { success: true };
   } catch {
     return { error: "No se pudo restaurar el jugador." };
+  }
+}
+
+export async function permanentlyDeleteSquadPlayer(id: string): Promise<ActionState> {
+  await requireSession();
+  if (!id) return { error: "ID requerido." };
+
+  try {
+    await prisma.player.delete({
+      where: { id },
+    });
+    revalidatePath("/plantel");
+    revalidatePath("/data");
+    return { success: true };
+  } catch {
+    return { error: "No se pudo eliminar definitivamente." };
+  }
+}
+
+export async function emptyTrash(): Promise<ActionState> {
+  await requireSession();
+
+  try {
+    await prisma.player.deleteMany({
+      where: { deletedAt: { not: null } },
+    });
+    revalidatePath("/plantel");
+    revalidatePath("/data");
+    return { success: true };
+  } catch {
+    return { error: "Error al vaciar la papelera." };
   }
 }
 

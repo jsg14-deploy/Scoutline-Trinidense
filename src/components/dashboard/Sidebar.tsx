@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { ExternalLink, LogOut } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { Logo } from "@/components/ui/Logo";
-import { NAV_LINKS } from "@/lib/dashboard/navLinks";
+import { NAV_GROUPS } from "@/lib/dashboard/navLinks";
 import { EXTERNAL_LINKS } from "@/lib/dashboard/externalLinks";
 import type { UserRole } from "@/generated/prisma/enums";
 
@@ -28,60 +28,88 @@ export function Sidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-surface md:flex">
-      <div className="flex items-center gap-2 border-b border-border px-5 py-4">
-        <Logo size={26} className="shrink-0" />
-        <span className="truncate text-sm font-bold text-text">{tenantName}</span>
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-surface md:flex">
+      {/* Brand Header */}
+      <div className="flex items-center gap-3 border-b border-border px-5 py-4 bg-card/40">
+        <Logo size={28} className="shrink-0" />
+        <div className="min-w-0">
+          <span className="block truncate text-sm font-bold text-text">{tenantName}</span>
+          <span className="block text-[10px] font-semibold text-accent uppercase tracking-wider">Club Profesional</span>
+        </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {NAV_LINKS.map((link) => {
-          const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
-          const Icon = link.icon;
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                isActive ? "bg-card text-accent" : "text-muted hover:bg-card hover:text-text"
-              }`}
-            >
-              <Icon size={18} strokeWidth={isActive ? 2.25 : 1.75} />
-              {link.label}
-            </Link>
-          );
-        })}
+      {/* Categorized Navigation */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.title} className="space-y-1">
+            <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-2">
+              {group.title}
+            </p>
+            {group.items.map((link) => {
+              const isActive = pathname === link.href || (link.href !== "/dashboard" && pathname.startsWith(`${link.href}`));
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`group flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-200 ${
+                    isActive
+                      ? "bg-accent/10 text-accent border border-accent/20 shadow-sm"
+                      : "text-muted hover:bg-card hover:text-text"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon size={16} strokeWidth={isActive ? 2.25 : 1.75} className={isActive ? "text-accent" : "text-muted group-hover:text-text transition-colors"} />
+                    <span className="truncate">{link.label}</span>
+                  </div>
+                  {link.badge && (
+                    <span className="rounded bg-accent/20 px-1.5 py-0.5 text-[9px] font-extrabold text-accent">
+                      {link.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
-      <div className="border-t border-border px-3 py-3">
-        <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
-          Plataformas externas
+      {/* External Platforms */}
+      <div className="border-t border-border px-3 py-3 bg-card/20">
+        <p className="px-2 pb-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-2">
+          Integraciones & Datos
         </p>
-        {EXTERNAL_LINKS.map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-text"
-          >
-            {link.label}
-            <ExternalLink size={14} />
-          </a>
-        ))}
+        <div className="grid grid-cols-2 gap-1">
+          {EXTERNAL_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between rounded-lg bg-surface/60 border border-border/50 px-2.5 py-1.5 text-[11px] font-medium text-muted transition-colors hover:border-accent/40 hover:text-text"
+            >
+              <span className="truncate">{link.label}</span>
+              <ExternalLink size={11} className="shrink-0 opacity-60" />
+            </a>
+          ))}
+        </div>
       </div>
 
-      <div className="border-t border-border px-4 py-4">
-        <div className="mb-3 rounded-lg bg-card px-3 py-2">
-          <p className="truncate text-xs font-semibold text-text">{userName}</p>
-          <p className="text-[11px] text-muted">{ROLE_LABELS[role]}</p>
+      {/* User Footer */}
+      <div className="border-t border-border px-4 py-3 bg-card/40">
+        <div className="mb-2 flex items-center justify-between rounded-xl bg-surface border border-border px-3 py-2">
+          <div className="min-w-0">
+            <p className="truncate text-xs font-bold text-text">{userName}</p>
+            <p className="text-[10px] font-medium text-muted">{ROLE_LABELS[role]}</p>
+          </div>
+          <span className="flex h-2 w-2 rounded-full bg-positive shrink-0" title="Conectado" />
         </div>
         <form action={logout}>
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted transition-colors hover:border-border-2 hover:text-text"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted transition-all hover:border-negative/40 hover:bg-negative/10 hover:text-negative"
           >
-            <LogOut size={14} />
+            <LogOut size={13} />
             Cerrar sesión
           </button>
         </form>

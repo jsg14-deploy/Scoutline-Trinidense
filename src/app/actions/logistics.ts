@@ -3,7 +3,7 @@
 import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@/generated/prisma";
+import { Prisma } from "@/generated/prisma/client";
 
 // --- PROVEEDORES ---
 

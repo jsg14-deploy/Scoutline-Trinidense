@@ -17,7 +17,7 @@ export default async function LegalPage() {
       include: { player: true },
     }),
     prisma.player.findMany({
-      where: { tenantId: session.tenantId },
+      where: { isSquadPlayer: true, deletedAt: null },
       orderBy: { name: "asc" },
       select: { id: true, name: true }
     })

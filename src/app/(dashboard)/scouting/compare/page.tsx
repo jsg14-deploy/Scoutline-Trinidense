@@ -144,7 +144,7 @@ export default async function ComparePage({ searchParams }: { searchParams: Sear
   );
 }
 
-function ProfileCard({ player, stats, market, color, borderColor }: { player: Record<string, unknown> & { name: string, positionGroup: string, currentTeam?: { name: string }, heightCm?: number, foot?: string }, stats: Record<string, unknown> & { minutesPlayed?: number }, market: Record<string, unknown> & { marketValueEur?: any, contractExpiry?: any }, color: string, borderColor: string }) {
+function ProfileCard({ player, stats, market, color, borderColor }: { player: any; stats: any; market: any; color: string; borderColor: string }) {
   return (
     <div className={`rounded-2xl border bg-card p-5 border-l-4 border-l-${color} border-t-border border-r-border border-b-border relative overflow-hidden`}>
       <div className={`absolute top-0 right-0 w-32 h-32 bg-${color}/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none`}></div>

@@ -209,14 +209,13 @@ export async function createLogistics(_state: LogisticsState, formData: FormData
   const isPublic = formData.get("is_public") === "true";
 
   try {
-    await prisma.logistics.create({
+    await prisma.logisticsExpense.create({
       data: {
         tenantId: session.tenantId,
-        hotelCost,
-        busCost,
-        date: dateStr ? new Date(dateStr) : new Date(),
-        notes,
-        isPublic,
+        amount: hotelCost + busCost,
+        category: "viaje",
+        description: notes || "Gasto de transporte/hospedaje",
+        status: "completed",
         createdById: session.userId,
       },
     });
@@ -230,7 +229,7 @@ export async function createLogistics(_state: LogisticsState, formData: FormData
 
 export async function deleteLogistics(id: string) {
   const session = await requireSession();
-  await prisma.logistics.deleteMany({
+  await prisma.logisticsExpense.deleteMany({
     where: { id, tenantId: session.tenantId },
   });
   revalidatePath("/financiero");
