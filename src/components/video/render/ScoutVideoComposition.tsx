@@ -9,7 +9,7 @@ import {
   Video,
   interpolate,
 } from "remotion";
-import { Shield, Play } from "lucide-react";
+import { Shield } from "lucide-react";
 
 export type ScoutVideoClip = {
   src: string; // URL o path al clip ya recortado por FFmpeg
@@ -87,8 +87,6 @@ export function ScoutVideoComposition({
       <Sequence from={clipsStart} durationInFrames={clipsFrames}>
         <ClipsSequence
           clips={clips}
-          isVertical={isVertical}
-          fps={fps}
         />
       </Sequence>
 
@@ -150,6 +148,7 @@ function IntroSequence({
           className="relative h-48 w-48 shrink-0 rounded-full border-4 border-[#f2c230] overflow-hidden bg-black shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
         >
           {photoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img src={photoUrl} alt={playerName} className="h-full w-full object-cover" />
           ) : (
             <div className="h-full w-full bg-[#141a3d] flex items-center justify-center">
@@ -186,7 +185,6 @@ function IntroSequence({
 // --- 2. METRICS SEQUENCE ---
 function MetricsSequence({
   statistics,
-  isVertical,
   fps,
 }: {
   statistics: { label: string; value: string; percent: number }[];
@@ -240,28 +238,20 @@ function MetricsSequence({
   );
 }
 
-// --- 3. CLIPS SEQUENCE ---
 function ClipsSequence({
   clips,
-  isVertical,
-  fps,
 }: {
   clips: ScoutVideoClip[];
-  isVertical: boolean;
-  fps: number;
 }) {
-  let accumulatedFrames = 0;
-
   return (
     <AbsoluteFill className="bg-black">
       {clips.map((clip, idx) => {
-        const startFrame = accumulatedFrames;
+        const startFrame = clips.slice(0, idx).reduce((acc, c) => acc + c.durationInFrames, 0);
         const duration = clip.durationInFrames;
-        accumulatedFrames += duration;
 
         return (
           <Sequence key={idx} from={startFrame} durationInFrames={duration}>
-            <SingleClipPlayer clip={clip} isVertical={isVertical} fps={fps} />
+            <SingleClipPlayer clip={clip} />
           </Sequence>
         );
       })}
@@ -271,12 +261,8 @@ function ClipsSequence({
 
 function SingleClipPlayer({
   clip,
-  isVertical,
-  fps,
 }: {
   clip: ScoutVideoClip;
-  isVertical: boolean;
-  fps: number;
 }) {
   const frame = useCurrentFrame();
 
@@ -386,7 +372,7 @@ function ConclusionSequence({
 }
 
 // --- 5. OUTRO SEQUENCE ---
-function OutroSequence({ isVertical, fps }: { isVertical: boolean; fps: number }) {
+function OutroSequence({ fps }: { isVertical: boolean; fps: number }) {
   const frame = useCurrentFrame();
 
   const scale = spring({ frame, fps, config: { damping: 15, stiffness: 80 } });

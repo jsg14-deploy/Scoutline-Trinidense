@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, Grid, List, Bookmark, HelpCircle } from "lucide-react";
+import { Search, Grid, List, Bookmark, HelpCircle, Scale } from "lucide-react";
 import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -122,7 +122,7 @@ export default async function ScoutingPage({ searchParams }: { searchParams: Sea
         {view && <input type="hidden" name="view" value={view} />}
 
         <div className="flex gap-2">
-          <button type="submit" className="rounded-lg bg-navy hover:bg-navy-2 px-5 py-2 text-sm font-semibold text-white transition-colors cursor-pointer">
+          <button type="submit" className="rounded-lg bg-navy hover:bg-navy-2 px-5 py-2 text-sm font-semibold text-white transition-all duration-300 active:scale-[0.98] cursor-pointer">
             Buscar
           </button>
           
@@ -150,6 +150,13 @@ export default async function ScoutingPage({ searchParams }: { searchParams: Sea
           >
             <Bookmark size={12} />
             Watchlist
+          </Link>
+          <Link
+            href="/scouting/compare"
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted hover:text-text hover:border-border-2 transition-colors"
+          >
+            <Scale size={12} />
+            Comparar Jugadores
           </Link>
         </div>
 

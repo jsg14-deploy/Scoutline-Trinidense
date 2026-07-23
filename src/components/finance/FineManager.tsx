@@ -29,7 +29,7 @@ export function FineManager({ fines, players }: FineManagerProps) {
   useEffect(() => {
     if (state === undefined && !pending) {
       formRef.current?.reset();
-      setIsPublic(true);
+      setTimeout(() => setIsPublic(true), 0);
     }
   }, [state, pending]);
 

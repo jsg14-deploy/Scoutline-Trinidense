@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { NoiseOverlay } from "@/components/ui/NoiseOverlay";
 
 export const metadata: Metadata = {
   title: "Club Sportivo Trinidense",
@@ -17,7 +18,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="h-full">
-      <body className="min-h-full bg-bg text-text font-sans antialiased">{children}</body>
+      <body className="min-h-full bg-bg text-text font-sans antialiased">
+        <NoiseOverlay />
+        {children}
+      </body>
     </html>
   );
 }

@@ -20,7 +20,7 @@ export function AiVideoAnalysis({
   clipId: string;
   initialAnalysis: string | null;
 }) {
-  const [analysis, setAnalysis] = useState(initialAnalysis);
+  const [analysis] = useState(initialAnalysis);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 

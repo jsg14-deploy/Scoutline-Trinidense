@@ -9,13 +9,12 @@ import { FinanceRankingChart } from "@/components/finance/FinanceRankingChart";
 import { FinanceCompare } from "@/components/finance/FinanceCompare";
 import { FinanceAiAssistant } from "@/components/finance/FinanceAiAssistant";
 import { FineManager } from "@/components/finance/FineManager";
-import { LogisticsManager } from "@/components/finance/LogisticsManager";
 import { loadSalaryRows } from "@/lib/finance/loadSalaryRows";
 
 export default async function FinancieroPage() {
   const session = await requireSession();
 
-  const [rows, players, fines, logistics] = await Promise.all([
+  const [rows, players, fines] = await Promise.all([
     loadSalaryRows(session.tenantId, session.userId),
     prisma.player.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true }, take: 300 }),
     prisma.fine.findMany({
@@ -24,13 +23,6 @@ export default async function FinancieroPage() {
         OR: [{ isPublic: true }, { createdById: session.userId }],
       },
       include: { player: { select: { name: true } } },
-      orderBy: { date: "desc" },
-    }),
-    prisma.logistics.findMany({
-      where: {
-        tenantId: session.tenantId,
-        OR: [{ isPublic: true }, { createdById: session.userId }],
-      },
       orderBy: { date: "desc" },
     }),
   ]);
@@ -48,15 +40,6 @@ export default async function FinancieroPage() {
     date: f.date,
     status: f.status,
     isPublic: f.isPublic,
-  }));
-
-  const logisticsMapped = logistics.map((l) => ({
-    id: l.id,
-    hotelCost: Number(l.hotelCost),
-    busCost: Number(l.busCost),
-    date: l.date,
-    notes: l.notes,
-    isPublic: l.isPublic,
   }));
 
   return (
@@ -88,10 +71,10 @@ export default async function FinancieroPage() {
       </div>
 
       {/* Multas */}
-      <FineManager fines={finesMapped} players={players} />
-
-      {/* Logística */}
-      <LogisticsManager logistics={logisticsMapped} />
+      <div className="grid gap-3">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-[#f2c230] border-b border-border pb-1">Gestión de Multas</h2>
+        <FineManager fines={finesMapped} players={players} />
+      </div>
 
       <FinanceRankingChart rows={rows} />
       <FinanceCompare rows={rows} />

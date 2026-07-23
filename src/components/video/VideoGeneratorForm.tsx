@@ -61,7 +61,7 @@ export function VideoGeneratorForm() {
   function handleRemoveStat(idx: number) {
     setStats(stats.filter((_, i) => i !== idx));
   }
-  function handleStatChange(idx: number, field: keyof StatItem, val: any) {
+  function handleStatChange(idx: number, field: keyof StatItem, val: string | number) {
     const next = [...stats];
     next[idx] = { ...next[idx], [field]: val };
     setStats(next);
@@ -132,8 +132,8 @@ export function VideoGeneratorForm() {
         horizontalUrl: data.horizontalUrl,
         verticalUrl: data.verticalUrl,
       });
-    } catch (err: any) {
-      setError(err.message || "Error al solicitar la renderización del video.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al solicitar la renderización del video.");
     } finally {
       setLoading(false);
     }

@@ -28,7 +28,7 @@ export default async function RivalPage() {
         subtitle="Analizá formaciones, minutos, convocados del rival y generá reportes con IA para planificar el partido."
       />
 
-      <RivalContainer analyses={analyses} userId={session.userId} />
+      <RivalContainer analyses={analyses} />
     </div>
   );
 }

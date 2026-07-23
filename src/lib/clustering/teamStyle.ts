@@ -13,7 +13,7 @@ const TEAM_STYLE_FEATURE_KEYS = [
 type TeamStyleFeatures = Record<(typeof TEAM_STYLE_FEATURE_KEYS)[number], number>;
 
 const CLUSTER_COUNT = 4;
-const STYLE_LABELS = ["possession", "high_press", "direct", "low_block"] as const;
+export type StyleLabel = "possession" | "high_press" | "direct" | "low_block";
 
 function standardize(matrix: number[][]): number[][] {
   const cols = matrix[0]?.length ?? 0;
@@ -92,7 +92,7 @@ async function computeTeamFeatures(teamId: string, season: string): Promise<Team
   };
 }
 
-function labelCluster(centroid: number[]): (typeof STYLE_LABELS)[number] {
+function labelCluster(centroid: number[]): StyleLabel {
   const [passes, pressures, progressiveCarries, shots] = centroid;
   if (passes > 0.5 && progressiveCarries > 0) return "possession";
   if (pressures > 0.5) return "high_press";

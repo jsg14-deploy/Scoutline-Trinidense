@@ -45,7 +45,10 @@ model Tenant {
   playerSalaries       PlayerSalary[]
   opponentAnalyses     OpponentAnalysis[]
   fines                Fine[]
-  logistics            Logistics[]
+  logisticsProviders   LogisticsProvider[]
+  logisticsTrips       LogisticsTrip[]
+  logisticsExpenses    LogisticsExpense[]
+  legalContracts       LegalContract[]
 }
 
 model User {
@@ -410,15 +413,70 @@ model Fine {
   createdAt   DateTime @default(now())
 }
 
-model Logistics {
+model LogisticsProvider {
   id          String   @id @default(cuid())
   tenantId    String
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  hotelCost   Decimal  @db.Decimal(14, 2)
-  busCost     Decimal  @db.Decimal(14, 2)
-  date        DateTime @default(now())
+  name        String
+  category    String   // e.g. "Hotel", "Transporte", "Alimentación", "Varios"
+  contactInfo String?
   notes       String?
-  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  expenses    LogisticsExpense[]
+}
+
+model LogisticsTrip {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  destination   String
+  departureDate DateTime
+  returnDate    DateTime?
+  notes         String?
+  status        String   @default("planned") // planned, active, completed
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  expenses      LogisticsExpense[]
+}
+
+model LogisticsExpense {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tripId      String?
+  trip        LogisticsTrip? @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  providerId  String?
+  provider    LogisticsProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  
+  amount      Decimal  @db.Decimal(14, 2)
+  category    String   // viático, factura, pasajes, comida
+  description String
+  status      String   @default("pending") // pending, approved, paid
+  invoiceUrl  String?
+  
   createdById String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LegalContract {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  playerId    String?
+  player      Player?  @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  
+  title       String
+  type        String   // "Jugador", "Staff", "Sponsor", "Proveedor"
+  startDate   DateTime
+  endDate     DateTime
+  clauses     String?
+  documentUrl String?
+  status      String   @default("active") // active, expired, terminated
+  
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

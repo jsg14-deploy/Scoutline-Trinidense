@@ -6,7 +6,7 @@ import { Play, Plus, Scissors, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { addVideoAnnotation, deleteVideoAnnotation, createTrimmedClip } from "@/app/actions/video";
 import { parseVideoUrl } from "@/lib/video/parseVideoUrl";
-import { RemotionTacticalVideoProps } from "./RemotionTacticalVideo";
+import { RemotionTacticalVideoProps, RemotionTacticalVideo } from "./RemotionTacticalVideo";
 
 // Cargar el reproductor de Remotion de forma dinámica (solo en el cliente)
 // para evitar problemas con la renderización del lado del servidor (SSR) de Next.js.
@@ -59,7 +59,7 @@ export function VideoPlayerPanel({
   const videoRef = useRef<HTMLVideoElement>(null);
   
   // Referencia tipada para el reproductor de Remotion
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<import("@remotion/player").PlayerRef>(null);
 
   const [timeInput, setTimeInput] = useState("");
   const [note, setNote] = useState("");
@@ -173,7 +173,7 @@ export function VideoPlayerPanel({
           {isLocal && !localFileUrl ? (
             <div className="flex flex-col items-center justify-center h-full p-8 text-center text-white">
               <Play size={40} className="text-accent mb-3 opacity-80" />
-              <p className="font-semibold text-sm">Este es un video local: "{localFilename}"</p>
+              <p className="font-semibold text-sm">Este es un video local: &quot;{localFilename}&quot;</p>
               <p className="text-xs text-muted mt-1 max-w-sm mb-4">
                 Para reproducirlo, arrastrá el archivo táctico de video acá o haz clic abajo.
               </p>
@@ -205,7 +205,7 @@ export function VideoPlayerPanel({
           ) : (
             <Player
               ref={playerRef}
-              component={require("./RemotionTacticalVideo").RemotionTacticalVideo}
+              component={RemotionTacticalVideo}
               inputProps={{
                 sourceUrl: videoSrc,
                 startSeconds: startSeconds ?? 0,

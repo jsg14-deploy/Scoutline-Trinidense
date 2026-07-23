@@ -11,6 +11,8 @@ import {
   Video,
   Swords,
   Users,
+  MapPin,
+  Scale,
   type LucideIcon,
 } from "lucide-react";
 
@@ -25,6 +27,8 @@ export const NAV_LINKS: NavLink[] = [
   { href: "/rival", label: "Análisis Rival", icon: Swords },
   { href: "/video", label: "Video", icon: Video },
   { href: "/medico", label: "Médico", icon: HeartPulse },
+  { href: "/logistica", label: "Logística", icon: MapPin },
+  { href: "/legal", label: "Área Legal", icon: Scale },
   { href: "/financiero", label: "Financiero", icon: DollarSign },
   { href: "/data", label: "Datos", icon: UploadCloud },
   { href: "/reports", label: "Reportes", icon: FileText },

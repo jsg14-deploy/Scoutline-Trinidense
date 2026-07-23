@@ -21,10 +21,9 @@ type OpponentAnalysisItem = {
 
 interface RivalContainerProps {
   analyses: OpponentAnalysisItem[];
-  userId: string;
 }
 
-export function RivalContainer({ analyses, userId }: RivalContainerProps) {
+export function RivalContainer({ analyses }: RivalContainerProps) {
   const [isPublic, setIsPublic] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(analyses[0]?.id ?? null);
   const [showForm, setShowForm] = useState(false);
@@ -38,12 +37,14 @@ export function RivalContainer({ analyses, userId }: RivalContainerProps) {
   useEffect(() => {
     if (state?.success) {
       formRef.current?.reset();
-      setShowForm(false);
-      setIsPublic(true);
-      // Select the newly created analysis (which is at the top of the list)
-      if (analyses.length > 0) {
-        setSelectedId(analyses[0].id);
-      }
+      setTimeout(() => {
+        setShowForm(false);
+        setIsPublic(true);
+        // Select the newly created analysis (which is at the top of the list)
+        if (analyses.length > 0) {
+          setSelectedId(analyses[0].id);
+        }
+      }, 0);
     }
   }, [state, analyses]);
 
@@ -57,7 +58,7 @@ export function RivalContainer({ analyses, userId }: RivalContainerProps) {
       if (res && "error" in res) {
         setAiError(res.error ?? "Error al analizar el rival.");
       }
-    } catch (e) {
+    } catch {
       setAiError("Ocurrió un error inesperado.");
     } finally {
       setAiPending(false);
@@ -196,7 +197,6 @@ export function RivalContainer({ analyses, userId }: RivalContainerProps) {
           ) : (
             analyses.map((a) => {
               const active = a.id === selectedId;
-              const isOwner = a.createdById === userId;
               return (
                 <div
                   key={a.id}
@@ -308,7 +308,7 @@ export function RivalContainer({ analyses, userId }: RivalContainerProps) {
                 </div>
               ) : (
                 <p className="text-sm text-muted italic border-t border-border pt-3">
-                  Aún no has generado el reporte táctico con Inteligencia Artificial. Hacé clic en "Analizar con IA"
+                  Aún no has generado el reporte táctico con Inteligencia Artificial. Hacé clic en &quot;Analizar con IA&quot;
                   arriba para obtener recomendaciones estratégicas basadas en este plantel rival.
                 </p>
               )}

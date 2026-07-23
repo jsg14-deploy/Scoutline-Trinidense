@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { Folder, Link as LinkIcon, Upload, Check } from "lucide-react";
+import { Folder, Link as LinkIcon, Check } from "lucide-react";
 import { createVideoClip } from "@/app/actions/video";
 import { VisibilitySelector } from "@/components/ui/VisibilitySelector";
 
@@ -20,8 +20,10 @@ export function VideoClipForm({ players }: { players: PlayerOption[] }) {
   useEffect(() => {
     if (state === undefined && !pending) {
       formRef.current?.reset();
-      setSelectedLocalFile("");
-      setIsPublic(true);
+      setTimeout(() => {
+        setSelectedLocalFile("");
+        setIsPublic(true);
+      }, 0);
     }
   }, [state, pending]);
 
