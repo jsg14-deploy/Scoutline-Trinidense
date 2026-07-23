@@ -49,6 +49,7 @@ model Tenant {
   logisticsTrips       LogisticsTrip[]
   logisticsExpenses    LogisticsExpense[]
   legalContracts       LegalContract[]
+  competitions         Competition[]
 }
 
 model User {
@@ -110,15 +111,24 @@ model Team {
 }
 
 model Player {
-  id            String        @id @default(cuid())
-  name          String
-  nationality   String?
-  positionGroup PositionGroup
-  foot          String?
-  heightCm      Int?
-  currentTeamId String?
-  currentTeam   Team?         @relation(fields: [currentTeamId], references: [id])
-  createdAt     DateTime      @default(now())
+  id             String        @id @default(cuid())
+  name           String
+  nationality    String?
+  positionGroup  PositionGroup
+  foot           String?
+  heightCm       Int?
+  weightKg       Float?
+  dateOfBirth    DateTime?
+  shirtNumber    Int?
+  marketValueEur Decimal?      @db.Decimal(14, 2)
+  contractExpiry DateTime?
+  notes          String?
+  isSquadPlayer  Boolean       @default(false)
+  deletedAt      DateTime?     // soft-delete
+  currentTeamId  String?
+  currentTeam    Team?         @relation(fields: [currentTeamId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now()) @updatedAt
 
   seasonStats          PlayerSeasonStats[]
   marketData           MarketData[]
@@ -132,6 +142,8 @@ model Player {
   legalContracts       LegalContract[]
 
   @@index([name])
+  @@index([isSquadPlayer])
+  @@index([deletedAt])
 }
 
 model PlayerSeasonStats {
@@ -480,4 +492,65 @@ model LegalContract {
   createdById String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────
+// Competiciones: torneos, partidos, posiciones
+// ─────────────────────────────────────────────────────────────
+
+model Competition {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String   // "Apertura 2026", "Copa Paraguay 2026"
+  season    String
+  country   String   @default("Paraguay")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matches   CompetitionMatch[]
+  standings CompetitionStanding[]
+
+  @@index([tenantId, isActive])
+}
+
+model CompetitionMatch {
+  id            String      @id @default(cuid())
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  homeTeam      String
+  awayTeam      String
+  homeScore     Int?
+  awayScore     Int?
+  matchDate     DateTime?
+  round         Int?
+  venue         String?
+  status        String      @default("scheduled") // scheduled | live | finished | postponed
+  externalId    String?     // future: API-Football / SofaScore match ID
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([competitionId, status])
+  @@index([matchDate])
+}
+
+model CompetitionStanding {
+  id            String      @id @default(cuid())
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  teamName      String
+  position      Int         @default(0)
+  played        Int         @default(0)
+  wins          Int         @default(0)
+  draws         Int         @default(0)
+  losses        Int         @default(0)
+  goalsFor      Int         @default(0)
+  goalsAgainst  Int         @default(0)
+  points        Int         @default(0)
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([competitionId, teamName])
+  @@index([competitionId, points])
 }

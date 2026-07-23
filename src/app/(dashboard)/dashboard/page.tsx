@@ -16,16 +16,18 @@ import {
 import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { DashboardTiles } from "@/components/dashboard/DashboardTiles";
 
 async function getStats(tenantId: string) {
-  const [players, matches, leagues, watchlist, uploads] = await Promise.all([
-    prisma.player.count(),
-    prisma.match.count(),
-    prisma.league.count(),
+  const [squadPlayers, scoutedPlayers, competitions, watchlist, uploads, injuries] = await Promise.all([
+    prisma.player.count({ where: { isSquadPlayer: true, deletedAt: null } }),
+    prisma.watchlistEntry.count({ where: { tenantId } }),
+    prisma.competition.count({ where: { tenantId } }),
     prisma.watchlistEntry.count({ where: { tenantId } }),
     prisma.dataUploadSession.count({ where: { tenantId } }),
+    prisma.injury.count({ where: { tenantId, status: { not: "recovered" } } }),
   ]);
-  return { players, matches, leagues, watchlist, uploads };
+  return { squadPlayers, scoutedPlayers, competitions, watchlist, uploads, injuries };
 }
 
 export default async function DashboardPage() {
@@ -53,14 +55,6 @@ export default async function DashboardPage() {
     take: 3,
   });
 
-  const tiles = [
-    { label: "Jugadores en catálogo", value: stats.players, icon: Users, color: "from-blue-500/10 to-indigo-500/10" },
-    { label: "Partidos cargados", value: stats.matches, icon: Shirt, color: "from-purple-500/10 to-pink-500/10" },
-    { label: "Ligas", value: stats.leagues, icon: Trophy, color: "from-amber-500/10 to-orange-500/10" },
-    { label: "En watchlist", value: stats.watchlist, icon: Bookmark, color: "from-teal-500/10 to-emerald-500/10" },
-    { label: "Cargas de datos (SICS/GPS)", value: stats.uploads, icon: UploadCloud, color: "from-cyan-500/10 to-sky-500/10" },
-  ];
-
   const quickActions = [
     { href: "/scouting", label: "Buscar Jugadores", desc: "Explorar catálogo y filtros", icon: Search },
     { href: "/similarity", label: "Motor de Similitud", desc: "Buscar perfiles similares", icon: Target },
@@ -77,26 +71,9 @@ export default async function DashboardPage() {
         subtitle="Un vistazo rápido a tu espacio de scouting."
       />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        {tiles.map((tile) => (
-          <div
-            key={tile.label}
-            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-border-2 hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.35)]"
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${tile.color} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
-            <div className="relative z-10">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface text-accent border border-border transition-colors group-hover:border-accent/40 group-hover:bg-card">
-                <tile.icon size={18} strokeWidth={1.8} />
-              </div>
-              <div className="mt-5 font-display text-4xl font-black tracking-tight text-text tabular-nums">{tile.value}</div>
-              <div className="mt-1.5 text-xs font-medium text-muted">{tile.label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <DashboardTiles stats={stats} />
 
-      {stats.players === 0 && (
+      {stats.squadPlayers === 0 && (
         <div className="rounded-2xl border border-dashed border-border-2 bg-surface p-6 text-sm text-muted">
           Todavía no hay jugadores cargados. Subí un export de SICS o de GPS desde{" "}
           <Link href="/data" className="text-accent hover:underline font-semibold">

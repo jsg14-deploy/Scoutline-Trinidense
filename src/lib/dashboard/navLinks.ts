@@ -4,6 +4,7 @@ import {
   FileText,
   HeartPulse,
   LayoutDashboard,
+  MapPin,
   Search,
   Sparkles,
   Target,
