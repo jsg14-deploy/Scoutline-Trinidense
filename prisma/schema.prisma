@@ -129,6 +129,7 @@ model Player {
   skinfoldMeasurements SkinfoldMeasurement[]
   salaries             PlayerSalary[]
   fines                Fine[]
+  legalContracts       LegalContract[]
 
   @@index([name])
 }
