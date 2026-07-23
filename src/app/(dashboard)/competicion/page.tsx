@@ -21,13 +21,13 @@ export default async function CompeticionPage() {
   });
 
   // Serialize for client
-  const serialized = competitions.map(c => ({
+  const serialized = competitions.map((c: any) => ({
     id: c.id,
     name: c.name,
     season: c.season,
     country: c.country,
     isActive: c.isActive,
-    matches: c.matches.map(m => ({
+    matches: c.matches.map((m: any) => ({
       id: m.id,
       homeTeam: m.homeTeam,
       awayTeam: m.awayTeam,
@@ -38,7 +38,7 @@ export default async function CompeticionPage() {
       venue: m.venue,
       status: m.status,
     })),
-    standings: c.standings.map(s => ({
+    standings: c.standings.map((s: any) => ({
       id: s.id,
       teamName: s.teamName,
       played: s.played,
