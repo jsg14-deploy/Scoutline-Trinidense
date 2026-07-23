@@ -2,6 +2,7 @@ import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { Scale, AlertTriangle, FileSignature } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { ContractForm } from "./ContractForm";
 import { AiLegalAnalyzer } from "@/components/legal/AiLegalAnalyzer";
 import { deleteLegalContract } from "@/app/actions/legal";
@@ -39,8 +40,9 @@ export default async function LegalPage() {
         subtitle="Control de vencimientos patrimoniales, cláusulas y acuerdos comerciales."
       />
 
-      {/* Alertas */}
-      {(criticalContracts.length > 0 || warningContracts.length > 0) && (
+      <FadeIn delay={0.1}>
+        {/* Alertas */}
+        {(criticalContracts.length > 0 || warningContracts.length > 0) && (
         <div className="grid gap-4 sm:grid-cols-2">
           {criticalContracts.length > 0 && (
             <div className="flex items-start gap-3 rounded-2xl bg-negative/10 p-4 border border-negative/20">
@@ -62,8 +64,9 @@ export default async function LegalPage() {
           )}
         </div>
       )}
+      </FadeIn>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_350px]">
+      <FadeIn delay={0.2} className="grid gap-6 xl:grid-cols-[1fr_350px]">
         <div className="flex flex-col gap-6">
           <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
             <table className="w-full text-sm">
@@ -129,7 +132,7 @@ export default async function LegalPage() {
         <div className="flex flex-col gap-6">
           <ContractForm players={players} />
         </div>
-      </div>
+      </FadeIn>
     </div>
   );
 }

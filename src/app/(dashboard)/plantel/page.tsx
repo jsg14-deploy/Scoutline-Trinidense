@@ -3,6 +3,7 @@ import { Users, ShieldAlert } from "lucide-react";
 import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { PlantelManualForm } from "@/components/plantel/PlantelManualForm";
 import type { PositionGroup } from "@/generated/prisma/enums";
 
@@ -11,6 +12,11 @@ export default async function PlantelPage() {
 
   // Cargamos todos los jugadores con salarios, lesiones y pliegues en esta sesión
   const players = await prisma.player.findMany({
+    where: {
+      watchlistEntries: {
+        none: { tenantId: session.tenantId }
+      }
+    },
     orderBy: { name: "asc" },
     include: {
       currentTeam: true,
@@ -61,27 +67,35 @@ export default async function PlantelPage() {
         title="Plantel de Trinidense"
         subtitle="Visualizá toda la información unificada del plantel: datos físicos, médicos y salarios."
       />
-
-      {/* Formulario para agregar jugador manual */}
-      <div>
-        <h2 className="mb-3 text-sm font-bold text-text uppercase tracking-wider text-[#f2c230]">Registrar nuevo jugador en el plantel</h2>
-        <PlantelManualForm />
-      </div>
+      <FadeIn delay={0.1}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-display font-bold text-text">Jugadores Activos</h2>
+            <p className="mt-1 text-sm text-muted">
+              {players.length} jugador(es) en el primer equipo. (Se excluyen jugadores en seguimiento).
+            </p>
+          </div>
+          <PlantelManualForm />
+        </div>
+      </FadeIn>
 
       {/* Listado agrupado */}
       <div className="grid gap-8">
-        {(Object.keys(grouped) as PositionGroup[]).map((pos) => {
+        {(Object.keys(grouped) as PositionGroup[]).map((pos, idx) => {
           const list = grouped[pos];
           if (list.length === 0) return null;
 
           return (
             <div key={pos} className="grid gap-3">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[#8f9bc7] border-b border-border pb-1">
-                {positionLabels[pos]} ({list.length})
-              </h2>
+              <FadeIn delay={0.2 + (idx * 0.1)}>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-[#8f9bc7] border-b border-border pb-1">
+                  {positionLabels[pos]} ({list.length})
+                </h2>
+              </FadeIn>
 
-              <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-                <table className="w-full text-sm">
+              <FadeIn delay={0.3 + (idx * 0.1)}>
+                <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+                  <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-surface text-xs font-semibold text-muted">
                       <th className="p-3 text-left">Jugador</th>
@@ -148,6 +162,7 @@ export default async function PlantelPage() {
                   </tbody>
                 </table>
               </div>
+            </FadeIn>
             </div>
           );
         })}

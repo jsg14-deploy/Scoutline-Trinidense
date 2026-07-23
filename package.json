@@ -23,6 +23,7 @@
     "@remotion/video": "^4.0.350",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
     "jose": "^6.2.3",
     "lucide-react": "^1.23.0",
     "ml-kmeans": "^6.0.0",
